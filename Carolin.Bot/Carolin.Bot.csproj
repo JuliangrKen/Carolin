@@ -12,4 +12,12 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Configuration\DiscordBotConfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties configuration_4discordbotconfig_1json__JsonSchema="https://github.com/ansible/schemas/raw/main/f/ansible-argument-specs.json" /></VisualStudio></ProjectExtensions>
+
 </Project>
