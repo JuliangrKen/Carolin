@@ -18,6 +18,6 @@
     </None>
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties configuration_4discordbotconfig_1json__JsonSchema="https://github.com/ansible/schemas/raw/main/f/ansible-argument-specs.json" /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions><VisualStudio><UserProperties configuration_4discordbotconfig_1json__JsonSchema="https://json.schemastore.org/base.json" /></VisualStudio></ProjectExtensions>
 
 </Project>
