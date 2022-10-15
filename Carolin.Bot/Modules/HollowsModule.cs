@@ -35,6 +35,24 @@ namespace Carolin.Bot.Modules
             });
         }
 
+        [Command("количество-пустых")]
+        public async Task GetNumHollowCommandAsync(IUser? user = null)
+        {
+            var gamerID = Context.User.Id;
+
+            if (user != null && Context.User.Id == botConfig.DevID)
+                gamerID = user.Id;
+
+            try
+            {
+                await ReplyAsync($"Количество убитых Пустых: **{await GetDatabaseContentAsync(gamerID)}**.");
+            }
+            catch
+            {
+                await Context.Channel.SendMessageAsync("`Пользователь не найден в базе данных!`");
+            }
+        }
+
         private async Task<string> GetRandomResultAsync()
         {
             var result = new Random().Next(1, 100);
@@ -43,7 +61,7 @@ namespace Carolin.Bot.Modules
             if (result <= 90)
             {
                 msg = "Вы успешно победили Пустого!";
-                await ((IGuildUser)Context.User).AddRoleAsync(botConfig.HollowsMaskRoleID);
+                await CreateOrUpdateUserDate(Context.User.Id, 1);
 
             }
             else if (result <= 95)
@@ -53,9 +71,40 @@ namespace Carolin.Bot.Modules
             else
             {
                 msg = "Вы успешно победили Пустого, с него вам выпала маска. Поздравляю!";
+                await ((IGuildUser)Context.User).AddRoleAsync(botConfig.HollowsMaskRoleID);
+                await CreateOrUpdateUserDate(Context.User.Id, 1);
             }
 
-            return msg; 
+            return msg;
+        }
+
+        private async Task CreateOrUpdateUserDate(ulong discordID, int num)
+        {
+            var data = await GetDatabaseContentAsync(discordID);
+
+            try
+            {
+                var newNum = Convert.ToInt32(data) + num;
+                await File.WriteAllTextAsync(await GetDatabaseFilePath(discordID), newNum.ToString());
+            }
+            catch
+            {
+                await File.WriteAllTextAsync(await GetDatabaseFilePath(discordID), num.ToString());
+            }
+        }
+        private async Task<string> GetDatabaseContentAsync(ulong discordID) =>
+            await File.ReadAllTextAsync(await GetDatabaseFilePath(discordID));
+
+        private Task<string> GetDatabaseFilePath(ulong discordID)
+        {
+            var dir = Directory.CreateDirectory($@"{Environment.CurrentDirectory}/Database/Hollows");
+            
+            var filePath = $@"{dir.FullName}/{discordID}.txt";
+
+            if (!File.Exists(filePath))
+                File.Create(filePath);
+
+            return Task.FromResult(filePath);
         }
     }
 }
