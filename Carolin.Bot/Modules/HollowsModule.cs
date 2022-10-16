@@ -24,7 +24,7 @@ namespace Carolin.Bot.Modules
 
                 if (DateTime.Now - userData.LastUsingCommand <= new TimeSpan(0, 0, 20, 0))
                 {
-                    await ReplyAsync($"`КД на использование - 20 минут! Последнее использование - {userData.LastUsingCommand}`");
+                    await ReplyAsync($"`КД на использование - 20 минут! Последнее использование - {userData.LastUsingCommand} (МСК)`");
                     return;
                 }
             }
