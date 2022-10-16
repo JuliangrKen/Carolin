@@ -1,4 +1,6 @@
 ﻿using Carolin.Bot.Configuration;
+using Carolin.Bot.Models;
+using Carolin.Bot.Utilites;
 using Discord;
 using Discord.Commands;
 
@@ -16,6 +18,21 @@ namespace Carolin.Bot.Modules
         [Command("пустой")]
         public async Task HollowCommandAsync()
         {
+            try
+            {
+                var userData = await UserDataWorker.GetUserDataAsync(Context.User.Id);
+
+                if (DateTime.Now - userData.LastUsingCommand <= new TimeSpan(0, 0, 20, 0))
+                {
+                    await ReplyAsync($"`КД на использование - 20 минут! Последнее использование - {userData.LastUsingCommand}`");
+                    return;
+                }
+            }
+            catch
+            {
+
+            }
+
             var embed = new EmbedBuilder()
                 .WithTitle("Убийство Пустого")
                 .WithDescription("Вы вступили в бой с Пустым!..")
@@ -23,10 +40,9 @@ namespace Carolin.Bot.Modules
 
             var msg = await Context.Channel.SendMessageAsync(embed: embed.Build());
 
-            Thread.Sleep(10_000);
+            Thread.Sleep(1_000);
 
             var result = await GetRandomResultAsync();
-
             embed.Description = result;
 
             await msg.ModifyAsync((msgProperties) =>
@@ -45,7 +61,7 @@ namespace Carolin.Bot.Modules
 
             try
             {
-                await ReplyAsync($"Количество убитых Пустых: **{await GetDatabaseContentAsync(gamerID)}**.");
+                await ReplyAsync($"Количество убитых Пустых: **{(await UserDataWorker.GetUserDataAsync(gamerID)).HollowsKills}**.");
             }
             catch
             {
@@ -61,50 +77,39 @@ namespace Carolin.Bot.Modules
             if (result <= 90)
             {
                 msg = "Вы успешно победили Пустого!";
-                await CreateOrUpdateUserDate(Context.User.Id, 1);
-
+                await UpdateOrCreateUserDataAsync();
             }
             else if (result <= 95)
             {
-                msg = "Вы проиграли Пустому...!";
+                msg = "Вы проиграли Пустому...";
             }
             else
             {
                 msg = "Вы успешно победили Пустого, с него вам выпала маска. Поздравляю!";
+
                 await ((IGuildUser)Context.User).AddRoleAsync(botConfig.HollowsMaskRoleID);
-                await CreateOrUpdateUserDate(Context.User.Id, 1);
+                await UpdateOrCreateUserDataAsync();
             }
 
             return msg;
         }
 
-        private async Task CreateOrUpdateUserDate(ulong discordID, int num)
+        private async Task UpdateOrCreateUserDataAsync()
         {
-            var data = await GetDatabaseContentAsync(discordID);
-
             try
             {
-                var newNum = Convert.ToInt32(data) + num;
-                await File.WriteAllTextAsync(await GetDatabaseFilePath(discordID), newNum.ToString());
+                var userData = new UserData()
+                {
+                    HollowsKills = (await UserDataWorker.GetUserDataAsync(Context.User.Id)).HollowsKills + 1,
+                    LastUsingCommand = DateTime.Now
+                };
+
+                await UserDataWorker.UpdateOrCreateUserDataAsync(Context.User.Id, userData);
             }
             catch
             {
-                await File.WriteAllTextAsync(await GetDatabaseFilePath(discordID), num.ToString());
+                await UserDataWorker.UpdateOrCreateUserDataAsync(Context.User.Id);
             }
-        }
-        private async Task<string> GetDatabaseContentAsync(ulong discordID) =>
-            await File.ReadAllTextAsync(await GetDatabaseFilePath(discordID));
-
-        private Task<string> GetDatabaseFilePath(ulong discordID)
-        {
-            var dir = Directory.CreateDirectory($@"{Environment.CurrentDirectory}/Database/Hollows");
-            
-            var filePath = $@"{dir.FullName}/{discordID}.txt";
-
-            if (!File.Exists(filePath))
-                File.Create(filePath);
-
-            return Task.FromResult(filePath);
         }
     }
 }
