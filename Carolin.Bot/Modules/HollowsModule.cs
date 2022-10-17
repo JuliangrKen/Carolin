@@ -69,6 +69,16 @@ namespace Carolin.Bot.Modules
             }
         }
 
+        [Command("установить-пустых")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+        public async Task SetNumHollowCommandAsync(IUser user, int value) =>
+            await UpdateOrCreateUserDataAsync(user.Id, value, true);
+
+        [Command("добавить-пустых")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+        public async Task AddNumHollowCommandAsync(IUser user, int value) =>
+            await UpdateOrCreateUserDataAsync(user.Id, value);
+
         private async Task<string> GetRandomResultAsync()
         {
             var result = new Random().Next(1, 100);
@@ -94,21 +104,26 @@ namespace Carolin.Bot.Modules
             return msg;
         }
 
-        private async Task UpdateOrCreateUserDataAsync()
+        private async Task UpdateOrCreateUserDataAsync() =>
+            await UpdateOrCreateUserDataAsync(Context.User.Id, 1);
+
+        private async Task UpdateOrCreateUserDataAsync(ulong discrodId, int value, bool isSet = false, DateTime? date = null)
         {
             try
             {
+                var data = await UserDataWorker.GetUserDataAsync(discrodId);
+
                 var userData = new UserData()
                 {
-                    HollowsKills = (await UserDataWorker.GetUserDataAsync(Context.User.Id)).HollowsKills + 1,
-                    LastUsingCommand = DateTime.Now
+                    HollowsKills = isSet ? value: data.HollowsKills + value,
+                    LastUsingCommand = date ?? data.LastUsingCommand
                 };
 
-                await UserDataWorker.UpdateOrCreateUserDataAsync(Context.User.Id, userData);
+                await UserDataWorker.UpdateOrCreateUserDataAsync(discrodId, userData);
             }
             catch
             {
-                await UserDataWorker.UpdateOrCreateUserDataAsync(Context.User.Id);
+                await UserDataWorker.UpdateOrCreateUserDataAsync(discrodId);
             }
         }
     }
