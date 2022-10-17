@@ -40,10 +40,10 @@ namespace Carolin.Bot.Modules
 
             var msg = await Context.Channel.SendMessageAsync(embed: embed.Build());
 
-            Thread.Sleep(1_000);
-
             var result = await GetRandomResultAsync();
             embed.Description = result;
+
+            Thread.Sleep(10_000);
 
             await msg.ModifyAsync((msgProperties) =>
             {
