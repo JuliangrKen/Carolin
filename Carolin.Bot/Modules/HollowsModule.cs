@@ -105,7 +105,7 @@ namespace Carolin.Bot.Modules
         }
 
         private async Task UpdateOrCreateUserDataAsync() =>
-            await UpdateOrCreateUserDataAsync(Context.User.Id, 1);
+            await UpdateOrCreateUserDataAsync(Context.User.Id, 1, false, DateTime.Now);
 
         private async Task UpdateOrCreateUserDataAsync(ulong discrodId, int value, bool isSet = false, DateTime? date = null)
         {
